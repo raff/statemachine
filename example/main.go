@@ -36,12 +36,18 @@ func (p *SmProcessor) Last() statemachine.State {
 }
 
 func main() {
+	// create processor
 	sm := &SmProcessor{}
 
+	// initialize state machine
 	sm.Init()
 
-	sm.PushState(sm.Ping) // push initial state
+	// push initial state
+	sm.PushState(sm.Ping)
 
+	// run state machine
 	sm.Run()
-	sm.Terminate() // call this to terminate early
+
+	// call this to terminate early
+	sm.Terminate()
 }
