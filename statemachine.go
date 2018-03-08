@@ -26,7 +26,9 @@ func (s State) Equal(s1 State) bool {
 }
 
 type StateMachine struct {
-	state chan State
+	state       chan State
+	idle        *time.Timer
+	idleTimeout time.Duration
 }
 
 func (sm *StateMachine) Init() {
@@ -34,8 +36,23 @@ func (sm *StateMachine) Init() {
 	sm.state <- sm.Wait
 }
 
+func (sm *StateMachine) IdleTimeout(d time.Duration, cb func()) {
+	if sm.idle != nil {
+		sm.idle.Stop()
+	}
+
+	if cb != nil {
+		sm.idleTimeout = d
+		sm.idle = time.AfterFunc(sm.idleTimeout, cb)
+	}
+}
+
 func (sm *StateMachine) Terminate() {
 	close(sm.state)
+
+	if sm.idle != nil {
+		sm.idle.Stop()
+	}
 
 	if len(sm.state) > 0 {
 		log.Println("State queue:")
@@ -64,6 +81,10 @@ func (sm *StateMachine) Run() {
 		if state == nil {
 			break
 		} else {
+			if sm.idle != nil {
+				sm.idle.Reset(sm.idleTimeout)
+			}
+
 			next := state()
 			log.Println("NEXT STATE:", next, len(sm.state))
 			if state.Equal(sm.Wait) && next.Equal(sm.Wait) {
@@ -74,4 +95,8 @@ func (sm *StateMachine) Run() {
 	}
 
 	log.Println("STATE: <STOP>")
+
+	if sm.idle != nil {
+		sm.idle.Stop()
+	}
 }

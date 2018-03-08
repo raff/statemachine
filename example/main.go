@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/raff/statemachine"
 )
@@ -27,6 +28,11 @@ func (p *SmProcessor) Pong() statemachine.State {
 		return p.Ping
 	}
 
+	return p.Slow
+}
+
+func (p *SmProcessor) Slow() statemachine.State {
+	time.Sleep(5 * time.Second)
 	return p.Last
 }
 
@@ -41,6 +47,11 @@ func main() {
 
 	// initialize state machine
 	sm.Init()
+
+	sm.IdleTimeout(3*time.Second, func() {
+		log.Println("SOMEBODY IS SLOW")
+		sm.PushState(nil)
+	})
 
 	// push initial state
 	sm.PushState(sm.Ping)
