@@ -16,6 +16,7 @@ type SmProcessor struct {
 
 func (p *SmProcessor) Ping() statemachine.State {
 	log.Println("in Ping")
+        time.Sleep(time.Second)
 	return p.Pong
 }
 

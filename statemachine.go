@@ -48,10 +48,14 @@ func (sm *StateMachine) IdleTimeout(d time.Duration, cb func()) {
 }
 
 func (sm *StateMachine) Terminate() {
-	close(sm.state)
+	if sm.state != nil {
+		close(sm.state)
+		sm.state = nil
+	}
 
 	if sm.idle != nil {
 		sm.idle.Stop()
+		sm.idle = nil
 	}
 
 	if len(sm.state) > 0 {
